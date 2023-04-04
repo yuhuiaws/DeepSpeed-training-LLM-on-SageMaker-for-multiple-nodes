@@ -54,7 +54,15 @@ If you use the torch.distributed.launch, you can utilize the barrier function to
 8. When you use torch.distributed.launch, please don't use global variables in your training script. Otherwise, the CUDA errors may occurs when exiting your training script. So in run_seq2seq_deepspeed.py, I change the "metric" variable from global variable to local variable.
 9. Plesae do not save the model into "/opt/ml/model", because Sagemaker will tar and compress all of files under "/opt/ml/model", and it will consume much time for LLM). I suggest that '/tmp/output/asset/' can be used to perform the model saving.
 10. We just use the rank 0 process to upload the trained model assets to S3 by s5cmd command. It means just one of ranks will perform the thing even if multiple nodes training is used.
-11. We should sync with every rank and ensure rank 0 uploading the model assets successfully (putting the torch.distributed.barrier() at the end of your taining script). Ater that, maybe there is some CUDA error when exiting the process, you can just ignore the error because the trained model assets have been uploaded to the S3.
+11. We should sync with every rank and ensure rank 0 uploading the model assets successfully (putting the torch.distributed.barrier() at the end of your taining script). Ater that, maybe there is some CUDA error when exiting the process:
+
+terminate called after throwing an instance of 'c10::CUDAError'
+  what():  CUDA error: driver shutting down
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Exception raised from query at ../aten/src/ATen/cuda/CUDAEvent.h:95 (most recent call first):
+
+Please just ignore the error because the trained model assets have been uploaded to the S3.
  
 
 
