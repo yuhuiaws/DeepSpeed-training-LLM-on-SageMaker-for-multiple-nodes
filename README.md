@@ -10,7 +10,7 @@ Now, we utilize the torch.distributed.launch + Deepspeed + Huggingface trainer A
 
 I explain more about these files: start.py will set some environment variables such as master's IP address and invoke the torch_launch.sh. Most of parameters (including training parameters and torch distributed launcher parameters) should be configured in torch_launch.sh. Finally torch_launch.sh will invoke your training python script. Also, you can use the requirements.txt to install related python libraries.
 
-Some tips:
+Some useful tips:
 1. There is the "s5cmd" file in this repo, we can use the command to speedup the uploading model assets to S3 after saving model in the container's local path.
 2. When using deepspeed zero stage 2 training LLM on muliple nodes in SageMaker, maybe it will hung untile the NCCL communication is timeout. When it happens, you can check the GPU memory utility of training instances from Amazon cloudwatch. In my experiment, the GPU memory utility is almost full (but OOM didn't occur), it may be a signal that you should switch to zero stage 3 (the issue disappears when I switch to zero 3).
 3. By default, DeepSpeed expects that a multi-node environment uses a shared storage. If this is not the case and each node can only see the local filesystem，you need to set the parameter "save_on_each_node" of Seq2SeqTrainingArguments API or TrainingArguments API to true.
@@ -52,7 +52,7 @@ If you use the torch.distributed.launch, you can utilize the barrier function to
 8. When you use torch.distributed.launch, please don't use global variables in your training script. Otherwise, the CUDA errors may occurs when exiting your training script. So in run_seq2seq_deepspeed.py, I change the "metric" variable from global variable to local variable.
 9. Plesae do not save the model into "/opt/ml/model", because Sagemaker will tar and compress all of files under "/opt/ml/model", and it will consume much time for LLM). I suggest that '/tmp/output/asset/' can be used to perform the model saving.
 10. We just use the rank 0 process to upload the trained model assets to S3 by s5cmd command. It means just one of ranks will perform the thing even if multiple nodes training is used.
-11. We should sync with every rank and ensure rank 0 uploading the model assets successfully. Ater that, maybe there is some CUDA error when exiting the process, you can just ignore the error because the trained model assets have been uploaded to the S3.
+11. We should sync with every rank and ensure rank 0 uploading the model assets successfully (putting the torch.distributed.barrier() at the end of your taining script). Ater that, maybe there is some CUDA error when exiting the process, you can just ignore the error because the trained model assets have been uploaded to the S3.
  
 
 
