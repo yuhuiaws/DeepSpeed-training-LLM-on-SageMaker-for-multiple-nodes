@@ -12,7 +12,9 @@ I explain more about these files: start.py will set some environment variables s
 
 Some tips:
 1. There is the "s5cmd" file in this repo, we can use the command to speedup the uploading model assets to S3 after saving model in the container's local path.
-2. 
+2. When using deepspeed zero stage 2 training LLM on muliple nodes in SageMaker, maybe it will hung untile the NCCL communication is timeout. When it happens, you can check the GPU memory utility of training instances from Amazon cloudwatch. In my experiment, the GPU memory utility is almost full (but OOM didn't occur), it may be a signal that you should switch to zero stage 3 (the issue disappears when I switch to zero 3).
+3. 
+
 
 
 
