@@ -4,7 +4,7 @@ This repo will show the whole codes:
 1. Fine tuning LLM by DeepSpeed on SageMaker for multiple nodes.
 2. Deploy the trained model for above step #1 on SageMaker.
 
-The repo is tested successfully on Data Science image and Python 3 kernel of Sagemaker studio with ml.m5.large kernel gateway instance in us-east-1 region.
+The repo is tested successfully on Data Science image and Python 3 kernel of Sagemaker studio with ml.m5.large kernel gateway instance in us-east-1 region (If you encount with kerenl restaring issue when preparing dataset in DeepSpeed-Flan-T5-on-Sagemaker-multiple-nodes.ipynb, I suggest that you shut down the kernel gateway instance and re-execute the DeepSpeed-Flan-T5-on-Sagemaker-multiple-nodes.ipynb).
 
 Fine tuning LLM such as Flan-T5-XXL
 
