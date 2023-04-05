@@ -24,9 +24,9 @@ Some useful tips:
 
   In fact, I have configured the parameter "save_on_each_node" to true (my environment: transformer 4.26.0，pytorch 1.10，python 3.8). I will only save best model, configure "load_best_model_at_end" to false and fix the issue.
 
-5. If you just want to save the best model weights, you can set the parameter "output_dir" (from Seq2SeqTrainingArguments or TrainingArguments API) to temporary path such as '/tmp' on p4d.24xlarge ("/tmp" has the enough disk space to save); And if you want to save all of the checkpoint during the training, you can set the output_dir to the checkponit local path (it will impact the train speed for multi-nodes training. Because SageMaker will upload the checkpoint to S3 nearly real-time, it will occupy the networking bandwidth and impact the communication efficiency between nodes in the cluster).
-6. When using parameter "compute_metrics" from Trainer or Seq2SeqTrainer API, the evaluation procedure is very slow. So if you just want to run successfully the whole training process, you can comment out the  "compute_metrics".
-7. When your training script will download something from website (such as nltk.downlaod("punkt")), you should ensure only one process in the current node (local rank 0) downloaindg files, otherwise it may fail the training job. 
+6. If you just want to save the best model weights, you can set the parameter "output_dir" (from Seq2SeqTrainingArguments or TrainingArguments API) to temporary path such as '/tmp' on p4d.24xlarge ("/tmp" has the enough disk space to save); And if you want to save all of the checkpoint during the training, you can set the output_dir to the checkponit local path (it will impact the train speed for multi-nodes training. Because SageMaker will upload the checkpoint to S3 nearly real-time, it will occupy the networking bandwidth and impact the communication efficiency between nodes in the cluster).
+7. When using parameter "compute_metrics" from Trainer or Seq2SeqTrainer API, the evaluation procedure is very slow. So if you just want to run successfully the whole training process, you can comment out the  "compute_metrics".
+8. When your training script will download something from website (such as nltk.downlaod("punkt")), you should ensure only one process in the current node (local rank 0) downloaindg files, otherwise it may fail the training job. 
 
         Traceback (most recent call last):
           File "/opt/ml/code/T5_configz_and_code/scripts/run_seq2seq_deepspeed.py", line 26, in <module>
@@ -53,10 +53,10 @@ Some useful tips:
 
 If you use the torch.distributed.launch, you can utilize the barrier function to achivement this purpose. More details, you can find the related code from run_seq2seq_deepspeed.py.
 
-8. When you use torch.distributed.launch, please don't use global variables in your training script. Otherwise, the CUDA errors may occurs when exiting your training script and fails the training job. So in run_seq2seq_deepspeed.py, I change the "metric" variable from global variable to local variable.
-9. Plesae do not save the model into "/opt/ml/model", because Sagemaker will tar and compress all of files under "/opt/ml/model", and it will consume much time for LLM). I suggest that '/tmp/output/asset/' can be used to perform the model saving.
-10. We just use the rank 0 process to upload the trained model assets to S3 by s5cmd command. It means just one of ranks will perform the thing even if multiple nodes training is used.
-11. We should sync with every rank and ensure rank 0 uploading the model assets successfully (putting the torch.distributed.barrier() at the end of your taining script). Ater that, maybe there is some CUDA error when exiting the process:
+9. When you use torch.distributed.launch, please don't use global variables in your training script. Otherwise, the CUDA errors may occurs when exiting your training script and fails the training job. So in run_seq2seq_deepspeed.py, I change the "metric" variable from global variable to local variable.
+10. Plesae do not save the model into "/opt/ml/model", because Sagemaker will tar and compress all of files under "/opt/ml/model", and it will consume much time for LLM). I suggest that '/tmp/output/asset/' can be used to perform the model saving.
+11. We just use the rank 0 process to upload the trained model assets to S3 by s5cmd command. It means just one of ranks will perform the thing even if multiple nodes training is used.
+12. We should sync with every rank and ensure rank 0 uploading the model assets successfully (putting the torch.distributed.barrier() at the end of your taining script). Ater that, maybe there is some CUDA error when exiting the process:
 
           terminate called after throwing an instance of 'c10::CUDAError'
             what():  CUDA error: driver shutting down
