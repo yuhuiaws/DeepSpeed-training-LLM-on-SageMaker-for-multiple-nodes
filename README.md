@@ -78,11 +78,15 @@ Some useful tips:
 
 1. For the model trained with pytorch fp16 mixed precision, the torch_dtype in the model’s config.json is also float16, but the model.dtype (such as "model = AutoModelForCausalLM.from_pretrained()") during inference is torch.float32, which is a big Pit (I spent a lot of time on this before I found out).
 
-        Analyze:
+           Analyze:
 
-        A. The size of saved model is about 14GB byte, and the size of model parameters are about 7B, So I inferred that the real dtype of this model's parameters is fp16. When using the fp16 mixed precision for training, the final model parameter/weight is saved as fp16 or fp32 which is up to specific framework. For Tensorflow, even if the model is trained with mixed precision, the dtype of saved model's parameter is also fp32 (To use mixed precision, the global policy should be set to 'mixed_float16' or 'mixed_bfloat16', so that every layer uses a 16-bit compute dtype and float32 variable dtype by default.-----Refer to the link: https://www.tensorflow.org/api_docs/python/tf/keras/mixed_precision/set_global_policy); but for pytorch, the saved model using the HF trainer API is fp16/bp16 after training with fp16 or bf16 mixed precision).
+           A. The size of saved model is about 14GB byte, and the size of model parameters are about 7B, So I inferred that the real dtype of this model's parameters is fp16. 
+           When using the fp16 mixed precision for training, the final model parameter/weight is saved as fp16 or fp32 which is up to specific framework. 
+           For Tensorflow, even if the model is trained with mixed precision, the dtype of saved model's parameter is also fp32 (To use mixed precision, the global policy should be set to 'mixed_float16' or 'mixed_bfloat16', so that every layer uses a 16-bit compute dtype and float32 variable dtype by default.-----Refer to the link: https://www.tensorflow.org/api_docs/python/tf/keras/mixed_precision/set_global_policy); 
+           but for pytorch, the saved model using the HF trainer API is fp16/bp16 after training with fp16 or bf16 mixed precision).
 
-        B. In addition, from the torch_dtype in config.json, it is also float16. However, the model.dtype (such as "model = AutoModelForCausalLM.from_pretrained()") during inference is torch.float32, so if you directly assign model.dtype to the parameter "dytpe" in deepspeed.init_inference API, it may happen OOM issue. At this time, you can set the parameter "dtype" of deepspeed.init_inference API to torch.half for fixing the OOM issue.
+           B. In addition, from the torch_dtype in config.json, it is also float16. However, the model.dtype (such as "model = AutoModelForCausalLM.from_pretrained()") during inference is torch.float32, so if you directly assign model.dtype to the parameter "dytpe" in deepspeed.init_inference API, it may happen OOM issue. 
+           At this time, you can set the parameter "dtype" of deepspeed.init_inference API to torch.half for fixing the OOM issue.
 
 
 
