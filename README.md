@@ -89,7 +89,15 @@ Some useful tips:
            At this time, you can set the parameter "dtype" of deepspeed.init_inference API to torch.half for fixing the OOM issue.
 
 
+2. For the trained LLM such as bloomz (using deepspeed, Sagemaker model parallelism or pytorch FSDP training methods), whether using LMI on Sagemaker endpoint or direct local inference, the inference speed is always much slower than that of bloomz downloaded directly from HF (When the context text is more than 750+ tokens and the max new token is set to 128, their speed difference is 8 times). 
 
+        Although the size of the finetuned bloomz model has become larger, the model structure, number of parameters, and dictionary size are all the same as the original HF bloomz model. The shape of the id sequence after tokenzier is also the same. 
+
+        After setting the use_cache parameter to True, the inference speed becomes normal. 
+
+        When using the flan-t5-xxl 11B model, even if use_cache is not set to True, the difference in flan-t5-xxl's inference speed before and after finetuning is not as big as that of bloomz. Also, for this model, setting use_cache to True will also make the inference faster. This parameter is Only useful for inference, not for training.
+
+        When using the HF model for generation, regardless of the pipeline API or the generate API, setting the parameter "use_cache" will speed up the inference speed of the model. For the explanation of "use_cache", please refer to: https://discuss.huggingface.co/t/what-is-the-purpose-of-use-cache-in-decoder/958. After enabling this parameter, it need not to recalculate the hiden state of all newly generated tokens when generating the next token each time, thus it will greatly save time, which is a great acceleration for the autoregressive model/causalLM.
 
 
 
