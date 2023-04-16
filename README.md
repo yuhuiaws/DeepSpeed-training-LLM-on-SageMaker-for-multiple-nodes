@@ -8,7 +8,7 @@ The repo is tested successfully on Data Science image and Python 3 kernel of Sag
 
 Fine tuning LLM such as Flan-T5-XXL
 
-Now, we utilize the torch.distributed.launch + Deepspeed + Huggingface trainer API to fine tunig Flan-T5-XXL on AWS SageMaker for multiple nodes. You can follow up the folder structure, and prepare your training script and configure related parameters in the torch_launch.sh script. If you also use the HF high level trainer API to train CausalLM (such as GPT-J) or Seq2seqLM (such as T5), there is very little code that needs to be modified.
+Now, we utilize the torch.distributed.launch + Deepspeed + Huggingface trainer API to fine tunig Flan-T5-XXL on AWS SageMaker for multiple nodes (Just set the environment variable "NODE_NUMBER" to 1, you can use the same codes for multiple GPUs training on single node). You can follow up the folder structure, and prepare your training script and configure related parameters in the torch_launch.sh script. If you also use the HF high level trainer API to train CausalLM (such as GPT-J) or Seq2seqLM (such as T5), there is very little code that needs to be modified.
 
 I explain more about these files: start.py as user entry point will set some environment variables such as master's IP address and invoke the torch_launch.sh script. Most of parameters (including training parameters and torch distributed launcher parameters) should be configured in torch_launch.sh. Finally torch_launch.sh will invoke your training python script. Also, you can use the requirements.txt to install related python libraries.
 
